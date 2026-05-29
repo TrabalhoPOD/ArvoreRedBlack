@@ -92,3 +92,253 @@ void rightRotate(RBTree *T, Node *y)
     x->right = y; // Coloca y à direita de x
     y->parent = x;
 }
+
+// Esta função substitui a posição de um nó (oldNode) na árvore por outro nó (newNode)
+// É usada durante a remoção para desconectar o nó que será removido
+void rbTransplant(RBTree *T, Node *oldNode, Node *newNode)
+{
+    // Se oldNode é a raiz, newNode vira a nova raiz
+    if (oldNode->parent == T->nil)
+    {
+        T->root = newNode;
+    }
+    // Senão, ajusta o ponteiro do pai de oldNode para apontar para newNode
+    else if (oldNode == oldNode->parent->left)
+    {
+        oldNode->parent->left = newNode;
+    }
+    else
+    {
+        oldNode->parent->right = newNode;
+    }
+
+    // Atualiza o pai de newNode para ser o pai de oldNode
+    newNode->parent = oldNode->parent;
+}
+
+// Busca recursiva por um valor na árvore
+Node *search(RBTree *T, Node *node, int data)
+{
+    // Se achou o nó ou chegou no sentinela NIL, retorna
+    if (node == T->nil || node->data == data)
+    {
+        return node;
+    }
+
+    // Busca recursivamente na subárvore apropriada
+    if (data < node->data)
+    {
+        return search(T, node->left, data);
+    }
+    else
+    {
+        return search(T, node->right, data);
+    }
+}
+
+// Encontra o nó com o menor valor a partir de um determinado nó
+// Usado para encontrar o SUCESSOR (filho mínimo da subárvore direita)
+Node *findMin(RBTree *T, Node *node)
+{
+    if (node == T->nil)
+    {
+        return T->nil;
+    }
+
+    // Vai sempre para a esquerda até não poder mais
+    while (node->left != T->nil)
+    {
+        node = node->left;
+    }
+
+    return node;
+}
+
+// após remover um nó preto, a árvore pode violar as propriedades Red-Black
+// Esta função restaura essas propriedades através de rotações e recolorimento
+// 
+// Propriedade importante: Todos os caminhos devem ter o mesmo número de nós pretos
+// Se removemos um preto, precisamos restaurar isso
+//
+void rbDeleteFixup(RBTree *T, Node *fixNode)
+{
+    // continua enquanto fixNode não é a raiz e é preto
+    // (Se é vermelho, podemos simplesmente pintar de preto)
+    while (fixNode != T->root && fixNode->color == BLACK)
+    {
+        if (fixNode == fixNode->parent->left)  // fixNode é filho ESQUERDO
+        {
+            Node *sibling = fixNode->parent->right; // sibling é o IRMÃO de fixNode
+
+            // 1: IRMÃO É VERMELHO
+            // Se o irmão é vermelho, o convertemos para preto via rotação
+            // Isso nos leva para um dos casos 2, 3 ou 4
+            if (sibling->color == RED)
+            {
+                sibling->color = BLACK;           // Pinta irmão de preto
+                fixNode->parent->color = RED;     // Pinta pai de vermelho
+                leftRotate(T, fixNode->parent);   // Rotaciona pai para esquerda
+                sibling = fixNode->parent->right; // Atualiza o irmão (que mudou após rotação)
+            }
+
+            // 2: IRMÃO COR PRETA COM AMBOS FILHOS PRETOS
+            // Se o irmão e seus filhos são pretos, simplesmente pinta o irmão de vermelho
+            // Isso redistribui a "falta de preto" para o nível acima
+            if (sibling->left->color == BLACK && sibling->right->color == BLACK)
+            {
+                sibling->color = RED;              // Pinta irmão de vermelho
+                fixNode = fixNode->parent;         // Continua a correção no nível acima
+            }
+            else  // Irmão tem pelo menos um filho vermelho
+            {
+                // 3: IRMÃO COR PRETO, FILHO ESQUERDO VERMELHO
+                // Se o filho direito do irmão é preto mas o esquerdo é vermelho,
+                // fazemos uma rotação à direita no irmão para chegar no Caso 4
+                if (sibling->right->color == BLACK)
+                {
+                    sibling->left->color = BLACK;  // Pinta filho esquerdo de preto
+                    sibling->color = RED;          // Pinta irmão de vermelho
+                    rightRotate(T, sibling);       // Rotaciona irmão para direita
+                    sibling = fixNode->parent->right; // Atualiza o irmão (que mudou após rotação)
+                }
+
+                // CASO 4: IRMÃO COR PRETO COM FILHO DIREITO VERMELHO
+                // Este é o caso "padrão" - executamos a rotação final
+                sibling->color = fixNode->parent->color;         // Irmão assume cor do pai
+                fixNode->parent->color = BLACK;                  // Pai vira preto
+                sibling->right->color = BLACK;                   // Filho direito do irmão vira preto
+                leftRotate(T, fixNode->parent);                  // Rotaciona pai para esquerda
+                fixNode = T->root;                               // Termina o loop (fixNode virou raiz)
+            }
+        }
+        else  // fixNode é filho DIREITO (tratamento simétrico)
+        {
+            Node *sibling = fixNode->parent->left;  // sibling é o IRMÃO de fixNode
+
+            // 1: IRMÃO É VERMELHO (SIMÉTRICO)
+            if (sibling->color == RED)
+            {
+                sibling->color = BLACK;
+                fixNode->parent->color = RED;
+                rightRotate(T, fixNode->parent);  // Rotaciona para DIREITA (oposto do caso acima)
+                sibling = fixNode->parent->left;
+            }
+
+            // 2: IRMÃO COR PRETA COM AMBOS FILHOS PRETOS
+            if (sibling->right->color == BLACK && sibling->left->color == BLACK)
+            {
+                sibling->color = RED;
+                fixNode = fixNode->parent;
+            }
+            else
+            {
+                // CASO 3: IRMÃO COR PRETA, FILHO DIREITO VERMELHO (SIMÉTRICO)
+                if (sibling->left->color == BLACK)
+                {
+                    sibling->right->color = BLACK;
+                    sibling->color = RED;
+                    leftRotate(T, sibling);        // Rotaciona para ESQUERDA (oposto do caso acima)
+                    sibling = fixNode->parent->left;
+                }
+
+                // CASO 4: IRMÃO COR PRETA COM FILHO ESQUERDO VERMELHO (SIMÉTRICO)
+                sibling->color = fixNode->parent->color;
+                fixNode->parent->color = BLACK;
+                sibling->left->color = BLACK;
+                rightRotate(T, fixNode->parent);   // Rotaciona para DIREITA (oposto do caso acima)
+                fixNode = T->root;
+            }
+        }
+    }
+
+    // Garante que fixNode é preto no final
+    fixNode->color = BLACK;
+}
+
+// Remove um nó específico da árvore Red-Black
+// 
+// A remoção em BST tem 3 casos:
+// 1. Nó é folha ou tem só filho direito -> simples, apenas substitui
+// 2. Nó tem só filho esquerdo -> simples, apenas substitui
+// 3. Nó tem ambos os filhos -> substitui pelo SUCESSOR (mínimo da subárvore direita)
+//
+void rbTreeDeleteNode(RBTree *T, Node *nodeToDelete)
+{
+    Node *replacementNode = nodeToDelete;                        // replacementNode será o nó removido ou seu sucessor
+    Color originalColorOfReplacement = replacementNode->color;    // Guardamos a cor para saber se precisa corrigir depois
+    Node *nodeToFix;                                              // nodeToFix será o nó que pode violar as propriedades
+
+    // CASO 1: Filho esquerdo é NIL
+    // Se nodeToDelete não tem filho esquerdo, simplesmente substituímos por seu filho direito
+    if (nodeToDelete->left == T->nil)
+    {
+        nodeToFix = nodeToDelete->right;
+        rbTransplant(T, nodeToDelete, nodeToDelete->right);  // Coloca o filho direito no lugar de nodeToDelete
+    }
+    // CASO 2: Filho direito é NIL
+    // Se nodeToDelete não tem filho direito, substituímos por seu filho esquerdo
+    else if (nodeToDelete->right == T->nil)
+    {
+        nodeToFix = nodeToDelete->left;
+        rbTransplant(T, nodeToDelete, nodeToDelete->left);   // Coloca o filho esquerdo no lugar de nodeToDelete
+    }
+    // CASO 3: nodeToDelete tem ambos os filhos
+    // Não podemos simplesmente remover nodeToDelete, precisamos substituí-lo pelo SUCESSOR
+    // O sucessor é o menor nó da subárvore direita
+    else
+    {
+        replacementNode = findMin(T, nodeToDelete->right);       // Encontra o sucessor
+        originalColorOfReplacement = replacementNode->color;      // Guarda a cor do sucessor
+        nodeToFix = replacementNode->right;                       // nodeToFix será o que pode violar as propriedades
+
+        if (replacementNode->parent == nodeToDelete)
+        {
+            // Se o sucessor é filho direto de nodeToDelete
+            nodeToFix->parent = replacementNode;  // Mesmo que nodeToFix seja NIL, precisamos manter essa relação
+        }
+        else
+        {
+            // Se o sucessor não é filho direto de nodeToDelete
+            rbTransplant(T, replacementNode, replacementNode->right);  // Remove o sucessor de sua posição
+            replacementNode->right = nodeToDelete->right;              // Conecta o filho direito de nodeToDelete ao sucessor
+            replacementNode->right->parent = replacementNode;
+        }
+
+        rbTransplant(T, nodeToDelete, replacementNode);          // Coloca o sucessor no lugar de nodeToDelete
+        replacementNode->left = nodeToDelete->left;               // Conecta o filho esquerdo de nodeToDelete ao sucessor
+        replacementNode->left->parent = replacementNode;
+        replacementNode->color = nodeToDelete->color;             // O sucessor assume a cor original de nodeToDelete
+    }
+
+    // Se removemos um nó PRETO, as propriedades podem estar violadas
+    // chamamos a função de correção
+    if (originalColorOfReplacement == BLACK)
+    {
+        rbDeleteFixup(T, nodeToFix);
+    }
+
+    // Libera a memória do nó removido
+    free(nodeToDelete);
+}
+
+// Recebe o valor inteiro que deve ser removido
+// Funcionamento:
+// 1. Busca o nó com o valor desejado
+// 2. Se não achou, simplesmente retorna (sem fazer nada)
+// 3. Se achou, chama a remoção do nó
+//
+void rbTreeDelete(RBTree *T, int data)
+{
+    // Busca o nó que contém o valor
+    Node *nodeToDelete = search(T, T->root, data);
+
+    // Se não encontrou (retornou NIL)
+    if (nodeToDelete == T->nil)
+    {
+        // Simplesmente retorna sem fazer nada
+        return;
+    }
+
+    // Se encontrou, remove o nó
+    rbTreeDeleteNode(T, nodeToDelete);
+}

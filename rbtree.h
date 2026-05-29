@@ -26,5 +26,11 @@ RBTree *createTree();
 Node *createNode(RBTree *T, int data);
 void leftRotate(RBTree *T, Node *x);
 void rightRotate(RBTree *T, Node *y);
+void rbTreeDelete(RBTree *T, int data);
+void rbTreeDeleteNode(RBTree *T, Node *nodeToDelete);
+void rbTransplant(RBTree *T, Node *oldNode, Node *newNode);
+void rbDeleteFixup(RBTree *T, Node *fixNode);
+Node *findMin(RBTree *T, Node *node);
+Node *search(RBTree *T, Node *node, int data);
 
 #endif
