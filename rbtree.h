@@ -36,4 +36,11 @@ Node *search(RBTree *T, Node *node, int data);
 void rbInsertFixup(RBTree *T, Node *z);
 void rbTreeInsert(RBTree *T, int data);
 
+
+void buscar(RBTree *T, int data);
+void imprimeRB(RBTree *T);
+void emOrdem(RBTree *T);
+void preOrdem(RBTree *T);
+void imprimeNo(RBTree *T, Node *x, int profundidaer);
+
 #endif

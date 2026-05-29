@@ -443,3 +443,85 @@ void rbTreeDelete(RBTree *T, int data)
     // Se encontrou, remove o nó
     rbTreeDeleteNode(T, nodeToDelete);
 }
+
+void buscar(RBTree *T, int data){
+    Node *resultado = search(T, T->root, data);
+    if (resultado == T->nil){
+        printf("Busca %d nao encontrado \n", data);
+    } else {
+        printf("Bsuca %d encontrado \n", data);
+    }
+}
+
+void imprimeNo(RBTree *T, Node *x, int profundidaer){
+    if (x == T->nil){
+        return;
+    }
+
+    for (int i = 0; i < profundidaer * 2; i++){
+        printf(" ");
+    }
+
+    printf("%d(%c) \n", x->data, x->color == RED ? 'R' : 'B');
+    imprimeNo(T, x->left, profundidaer + 1);
+    imprimeNo(T, x->right, profundidaer + 1);
+}
+
+void imprimeRB(RBTree *T){
+    printf("Arvore: \n");
+    if(T->root == T->nil){
+        printf(" (vazia) \n");
+    } else {
+        imprimeNo(T, T->root, 0);
+    }
+}
+
+void emOrdemAux(RBTree *T, Node *x, int *primeiro){
+    if (x == T->nil){
+        return;
+    }
+    emOrdemAux(T, x->left, primeiro);
+    if(!*primeiro){
+        printf(" ");
+    }
+    printf("%d(%c)", x->data, x->color == RED ? 'R' : 'B');
+    *primeiro = 0;
+    emOrdemAux(T, x->right, primeiro);
+}
+
+void emOrdem(RBTree *T){
+    printf("Em ordem: ");
+    if (T->root == T->nil){
+        printf(" (vazia) \n");
+        return;
+    }
+    int primeiro = 1;
+    printf(" ");
+    emOrdemAux(T, T->root, &primeiro);
+    printf("\n");
+}
+
+void preOrdemAux(RBTree *T, Node *x, int *primeiro){
+    if(x == T->nil){
+        return;
+    }
+    if (!*primeiro){
+        printf(" ");
+    }
+    printf("%d(%c)", x->data, x->color == RED ? 'R' : 'B');
+    *primeiro = 0;
+    preOrdemAux(T, x->left, primeiro);
+    preOrdemAux(T, x->right, primeiro);
+}
+
+void preOrdem(RBTree *T){
+    printf("Pre ordem: ");
+    if(T->root == T->nil){
+        printf(" (vazia) \n");
+        return;
+    }
+    int primeiro = 1;
+    printf(" ");
+    preOrdemAux(T, T->root, &primeiro);
+    printf("\n");
+}
