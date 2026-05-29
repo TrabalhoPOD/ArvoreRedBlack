@@ -496,7 +496,6 @@ void emOrdem(RBTree *T){
         return;
     }
     int primeiro = 1;
-    printf(" ");
     emOrdemAux(T, T->root, &primeiro);
     printf("\n");
 }
@@ -521,7 +520,6 @@ void preOrdem(RBTree *T){
         return;
     }
     int primeiro = 1;
-    printf(" ");
     preOrdemAux(T, T->root, &primeiro);
     printf("\n");
 }
