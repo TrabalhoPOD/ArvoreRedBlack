@@ -33,4 +33,7 @@ void rbDeleteFixup(RBTree *T, Node *fixNode);
 Node *findMin(RBTree *T, Node *node);
 Node *search(RBTree *T, Node *node, int data);
 
+void rbInsertFixup(RBTree *T, Node *z);
+void rbTreeInsert(RBTree *T, int data);
+
 #endif

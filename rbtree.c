@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "rbtree.h"
 
@@ -152,6 +153,106 @@ Node *findMin(RBTree *T, Node *node)
     }
 
     return node;
+}
+
+// Corrige possíveis violações das propriedades Red-Black após uma inserção
+void rbInsertFixup(RBTree *T, Node *z)
+{
+    while (z->parent->color == RED)
+    {
+        if (z->parent == z->parent->parent->left)
+        {
+            Node *y = z->parent->parent->right; // Tio de z
+
+            if (y->color == RED)
+            {
+                z->parent->color = BLACK;
+                y->color = BLACK;
+                z->parent->parent->color = RED;
+                z = z->parent->parent;
+            }
+            else
+            {
+                if (z == z->parent->right)
+                {
+                    z = z->parent;
+                    leftRotate(T, z);
+                }
+                z->parent->color = BLACK;
+                z->parent->parent->color = RED;
+                rightRotate(T, z->parent->parent);
+            }
+        }
+        else
+        {
+            Node *y = z->parent->parent->left; // Tio de z
+
+            if (y->color == RED)
+            {
+                z->parent->color = BLACK;
+                y->color = BLACK;
+                z->parent->parent->color = RED;
+                z = z->parent->parent;
+            }
+            else
+            {
+                if (z == z->parent->left)
+                {
+                    z = z->parent;
+                    rightRotate(T, z);
+                }
+                z->parent->color = BLACK;
+                z->parent->parent->color = RED;
+                leftRotate(T, z->parent->parent);
+            }
+        }
+    }
+    T->root->color = BLACK;
+}
+
+// Insere um novo valor na árvore Red-Black
+void rbTreeInsert(RBTree *T, int data)
+{
+    Node *y = T->nil;
+    Node *x = T->root;
+
+    // Procura o local de inserção e verifica se o nó já existe
+    while (x != T->nil)
+    {
+        y = x;
+        if (data < x->data)
+        {
+            x = x->left;
+        }
+        else if (data > x->data)
+        {
+            x = x->right;
+        }
+        else
+        {
+            // O valor já existe, ignora a operação
+            printf("Valor ja esta presente na arvore\n");
+            return;
+        }
+    }
+
+    Node *z = createNode(T, data);
+    z->parent = y;
+
+    if (y == T->nil)
+    {
+        T->root = z;
+    }
+    else if (z->data < y->data)
+    {
+        y->left = z;
+    }
+    else
+    {
+        y->right = z;
+    }
+
+    rbInsertFixup(T, z);
 }
 
 // após remover um nó preto, a árvore pode violar as propriedades Red-Black
