@@ -43,4 +43,7 @@ void emOrdem(RBTree *T);
 void preOrdem(RBTree *T);
 void imprimeNo(RBTree *T, Node *x, int profundidaer);
 
+void validaArvore(RBTree *T);
+void corromperArvore(RBTree *T);
+
 #endif

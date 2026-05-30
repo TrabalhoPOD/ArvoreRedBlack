@@ -523,3 +523,84 @@ void preOrdem(RBTree *T){
     preOrdemAux(T, T->root, &primeiro);
     printf("\n");
 }
+
+// função auxiliar para verificar se ha algum filho vermelho de um no vermelho
+int validaVermelho(RBTree *T, Node *x)
+{   
+    // caso base se o no for nil
+    if (x == T->nil)
+        return 1;
+
+    // se o no for vermelho, verifica se um dos filhos é vermelho, se sim, a arvore nao é valida
+    if (x->color == RED)
+    {
+        if (x->left->color == RED || x->right->color == RED)
+            return 0;
+    }
+
+    // chama recursivamente validaVermelho nos dois filhos
+    return validaVermelho(T, x->left) &&
+           validaVermelho(T, x->right);
+}
+
+// função auxiliar para verificar a quinta propriedade
+int alturaPreta(RBTree *T, Node *x)
+{
+    // caso base se o no for nil
+    if (x == T->nil)
+        return 1;
+    // chamada recursiva nos filhos
+    int esquerda = alturaPreta(T, x->left);
+    int direita = alturaPreta(T, x->right);
+
+    // se algum filho retorna 0, algo deu errado, a arvore ja nao é mais valida
+    if (esquerda == 0 || direita == 0)
+        return 0;
+
+    // se as alturas dos filhos forem diferentes, algo deu errado, a arvore ja nao é mais valida 
+    if (esquerda != direita)
+        return 0;
+    // se o nó for preto, retorna a altura preta do filho +1
+    return esquerda + (x->color == BLACK);
+}
+
+// vailida a arvore, retorna "Valida: x" sendo x sim ou nao no terminal
+void validaArvore(RBTree *T){
+    int valida = 1;
+
+    //verifica a primeira e segunda propriedade (raiz e preta e todo no e preto ou vermelho)
+        if (T->root != T->nil &&
+        T->root->color != BLACK){
+        valida = 0;
+    }
+
+    //verifica a quarta (vermelho nao pode ser filho de vermelho)
+    if (!validaVermelho(T, T->root)){
+        valida = 0;
+    }
+
+    //verifica a quinta (todos os caminhos da raiz ate todas as folhas tem o mesmo numero de pretas)
+    if (alturaPreta(T, T->root) == 0){
+        valida = 0;
+    }
+
+    // imprime resultado
+    printf("Valida: ");
+    if(valida == 1){
+        printf("sim\n");
+    }else{
+        printf("nao\n");
+    }
+}
+
+// funçao pra testar validarArvore
+void corromperArvore(RBTree *T)
+{
+    // se a arvore nao é vazia e o filho esquerdo da raiz nao é vazio
+    if (T->root != T->nil && T->root->left != T->nil)
+    {
+        // raiz e filho esquerdo viram vermelho, tornando-a invalida
+        T->root->color = RED;
+        T->root->left->color = RED;
+    }
+}
